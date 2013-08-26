@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="nixha-cache" default="info" basedir=".">
+
+	<property name="version" value="1.0.0" />
+
+	<property name="source" location="${basedir}/src" />
+	<property name="source.main.java" location="${source}/main/java" />
+	<property name="source.test.java" location="${source}/test/java" />
+
+	<property name="target" location="${basedir}/target" />
+	<property name="target.temp" location="${target}/temp" />
+	<property name="target.temp.classes" location="${target.temp}/classes" />
+
+	<property name="debug" value="false" />
+	<property name="verbose" value="false" />
+
+	<tstamp>
+		<format property="date" pattern="yyyy-MM-dd HH:mm:ss" />
+	</tstamp>
+
+	<path id="classpath.main">
+	</path>
+
+	<path id="classpath.test">
+		<fileset dir="${ant.home}/..">
+			<include name="**/*.jar" />
+		</fileset>
+		<pathelement location="${target}/${ant.project.name}.jar" />
+	</path>
+
+	<target name="build" depends="jar" description="builds JAR">
+		<antcall target="info" />
+	</target>
+
+	<target name="junit" depends="compile, compile-junit, jar" description="process unit tests">
+		<junit printsummary="yes" showoutput="yes" fork="false">
+			<classpath>
+				<path refid="classpath.test" />
+			</classpath>
+
+			<formatter type="xml" />
+
+			<batchtest fork="false" todir="${target}">
+				<fileset dir="${source.test.java}">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		
+		<antcall target="info" />
+	</target>
+
+	<target name="clean">
+		<delete includeemptydirs="true" verbose="${verbose}">
+			<fileset dir="${target}" defaultexcludes="false">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="info">
+		<echo>[${date}] Project:      ${ant.project.name}-${version}</echo>
+		<echo>[${date}] Ant-Version:  ${ant.version}</echo>
+		<echo>[${date}] Java-Version: ${java.version}</echo>
+	</target>
+
+	<target name="compile" depends="clean">
+		<mkdir dir="${target.temp.classes}" />
+
+		<javac srcdir="${source.main.java}" debug="${debug}" verbose="${verbose}" destdir="${target.temp.classes}" classpathref="classpath.main" includeantruntime="false" />
+	</target>
+
+	<target name="compile-junit">
+		<mkdir dir="${target.temp.classes}" />
+
+		<javac srcdir="${source.test.java}" debug="${debug}" verbose="${verbose}" destdir="${target.temp.classes}" classpathref="classpath.test" includeantruntime="false" />
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${target}/${ant.project.name}.jar" basedir="${target.temp.classes}" includes="**/*.*">
+			<manifest>
+				<section name="${ant.project.name}-${version}">
+					<attribute name="Project" value="${ant.project.name}" />
+					<attribute name="Version" value="${version}" />
+					<attribute name="Built-By" value="${user.name}" />
+					<attribute name="Built-Date" value="${date}" />
+				</section>
+			</manifest>
+		</jar>
+	</target>
+
+</project>
+
